@@ -11,4 +11,9 @@ router.route('/sign_up')
 router.route('/verify')
   .put(UserValidation.verifyAccount, UserController.verifyAccount)
 
+  router.route('/sign_in')
+ .post(UserValidation.signIn, UserController.signIn)
+
+
+
 export const userRoutes = router

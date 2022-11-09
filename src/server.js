@@ -4,6 +4,7 @@ import { corsOptions } from '*/config/cors'
 import { connectDB } from '*/config/mongodb'
 import { env } from '*/config/environtment'
 import { apiV1 } from '*/routes/v1'
+import cookieParser from 'cookie-parser'
 
 connectDB()
   .then(() => console.log('Connected successfully to database server!'))
@@ -15,6 +16,8 @@ connectDB()
 
 const bootServer = () => {
   const app = express()
+
+  app.use(cookieParser())
 
   app.use(cors(corsOptions))
 
