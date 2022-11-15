@@ -5,7 +5,8 @@ export const HttpStatusCode = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   NOT_FOUND: 404,
-  INTERNAL_SERVER: 500
+  INTERNAL_SERVER: 500,
+  EXPIRED: 410 // gone
 }
 
 export const WHITELIST_DOMAINS = [
