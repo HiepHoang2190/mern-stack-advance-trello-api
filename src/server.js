@@ -16,6 +16,13 @@ connectDB()
 
 const bootServer = () => {
   const app = express()
+  
+  // Fix cái vụ Cache from disk của ExpressJS
+ app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
+
 
   app.use(cookieParser())
 
