@@ -14,6 +14,10 @@ router.route('/verify')
   router.route('/sign_in')
  .post(UserValidation.signIn, UserController.signIn)
 
+ router.route('/sign_out')
+ .delete(UserController.signOut)
 
+ router.route('/refresh_token')
+ .get(UserController.refreshToken)
 
 export const userRoutes = router

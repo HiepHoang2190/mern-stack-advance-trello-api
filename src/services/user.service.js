@@ -106,12 +106,14 @@ const signIn = async (data) => {
     const accessToken = await JwtProvider.generateToken(
       env.ACCESS_TOKEN_SECRET_SIGNATURE,
       env.ACCESS_TOKEN_SECRET_LIFE,
+      // 5,
       userInfoToStoreInJwtToken
     )
 
     const refreshToken = await JwtProvider.generateToken(
       env.REFRESH_TOKEN_SECRET_SIGNATURE,
       env.REFRESH_TOKEN_SECRET_LIFE,
+      // 15,
       userInfoToStoreInJwtToken
     )
 
@@ -123,8 +125,34 @@ const signIn = async (data) => {
   }
 }
 
+const refreshToken = async (clientRefershToken) => {
+  try {
+    // Verify / giải mã token
+    const refershTokenDecoded = await JwtProvider.verifyToken(env.REFRESH_TOKEN_SECRET_SIGNATURE, clientRefershToken )
+
+    // Đoạn này vì chúng ta chỉ lưu những thông tin unique và cố định của user, vì vậy có thể lấy luôn từ decoded ra, tiết kiệm query vào DB để lấy data mới.
+    const userInfoToStoreInJwtToken = {
+      _id: refershTokenDecoded._id,
+      email: refershTokenDecoded.email
+    }
+
+    const accessToken = await JwtProvider.generateToken(
+      env.ACCESS_TOKEN_SECRET_SIGNATURE,
+      env.ACCESS_TOKEN_SECRET_LIFE,
+      // 5,
+      userInfoToStoreInJwtToken
+    )
+
+    return {accessToken}
+
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const UserService = {
   createNew,
   verifyAccount,
-  signIn
+  signIn,
+  refreshToken
 }
