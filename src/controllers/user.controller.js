@@ -1,6 +1,6 @@
 import { HttpStatusCode } from '*/utilities/constants'
 import { UserService } from '*/services/user.service'
-
+import ms from 'ms'
 const createNew = async (req, res) => {
   try {
     const result = await UserService.createNew(req.body)
@@ -28,8 +28,8 @@ const verifyAccount = async (req, res) => {
     const result = await UserService.signIn(req.body)
   
     // xử lý cookie ở đây
-    res.cookie('accessToken', result.accessToken, { httpOnly: true, secure: true, sameSite: 'none' })
-    res.cookie('refreshToken', result.refreshToken, { httpOnly: true, secure: true, sameSite: 'none' })
+    res.cookie('accessToken', result.accessToken, { httpOnly: true, secure: true, sameSite: 'none',  maxAge:ms('14 days')})
+    res.cookie('refreshToken', result.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge:ms('14 days') })
   
     res.status(HttpStatusCode.OK).json(result)
   } catch (error) {
@@ -38,12 +38,45 @@ const verifyAccount = async (req, res) => {
     })
   }
  }
+
+ const signOut = async (req, res) => {
+  try {
+
+    // Xoá cookie
+    res.clearCookie('accessToken')
+    res.clearCookie('refreshToken')
+   
+    res.status(HttpStatusCode.OK).json({
+      signedOut: true
+    })
+  } catch (error) {
+    res.status(HttpStatusCode.INTERNAL_SERVER).json({
+      errors: error.message
+    })
+  }
+ }
   
- 
+ const refreshToken = async (req, res) => {
+  try {
+    const result = await UserService.refreshToken(req.cookies?.refreshToken)
+  
+    // xử lý cookie ở đây
+    res.cookie('accessToken', result.accessToken, { httpOnly: true, secure: true, sameSite: 'none',  maxAge:ms('14 days')})
+  
+  
+    res.status(HttpStatusCode.OK).json(result)
+  } catch (error) {
+    res.status(HttpStatusCode.INTERNAL_SERVER).json({
+      errors: `Please Sign In!`
+    })
+  }
+ }
  
 
 export const UserController = {
   createNew,
   verifyAccount,
-  signIn
+  signIn,
+  signOut,
+  refreshToken
 }
