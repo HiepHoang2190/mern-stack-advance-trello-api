@@ -61,7 +61,28 @@ const verifyAccount = async (req, res, next) => {
     })
   }
  }
+
+ const update = async (req, res, next) => {
+  const condition = Joi.object({
+    displayName: Joi.string().trim(),
+    currentPassword: Joi.string().pattern(PASSWORD_RULE).message('Current Password is invalid'),
+    newPassword: Joi.string().pattern(PASSWORD_RULE).message('New Password is invalid')
+  })
+  try {
+    await condition.validateAsync(req.body, {
+      abortEarly: false,
+      allowUnknown: true
+    })
+    next()
+  } catch (error) {
+    res.status(HttpStatusCode.BAD_REQUEST).json({
+      errors: new Error(error).message
+    })
+  }
+ }
   
+ 
+ 
  
  
  
@@ -70,5 +91,6 @@ const verifyAccount = async (req, res, next) => {
 export const UserValidation = {
   createNew,
   verifyAccount,
-  signIn
+  signIn,
+  update
 }
