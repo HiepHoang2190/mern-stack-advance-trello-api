@@ -149,10 +149,42 @@ const refreshToken = async (clientRefershToken) => {
     throw new Error(error)
   }
 }
+const update = async (userId, data) => {
+  try {
+    let updatedUser = {}
+
+    if(data.currentPassword && data.newPassword) {
+      //  Change password
+      const existUser = await UserModel.findOneById(userId)
+      if (!existUser) {
+        throw new Error('User not found.')
+      }
+      // Compare password
+      if (!bcryptjs.compareSync(data.currentPassword, existUser.password)) {
+        throw new Error('Your current password is incorrect.')
+      }
+
+      updatedUser = await UserModel.update(userId, {
+        password: bcryptjs.hashSync(data.newPassword, 8)
+      })
+
+    } else {
+      // General information: displayName
+      updatedUser = await UserModel.update(userId, {
+        displayName: data.displayName
+      })
+    }
+    
+    return pickUser(updatedUser)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 
 export const UserService = {
   createNew,
   verifyAccount,
   signIn,
-  refreshToken
+  refreshToken,
+  update
 }

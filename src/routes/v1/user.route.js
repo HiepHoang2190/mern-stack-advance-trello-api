@@ -1,6 +1,7 @@
 import express from 'express'
 import { UserController } from '*/controllers/user.controller'
 import { UserValidation } from '*/validations/user.validation'
+import {AuthMiddleware} from '*/middlewares/auth.middleware'
 
 const router = express.Router()
 
@@ -19,5 +20,10 @@ router.route('/verify')
 
  router.route('/refresh_token')
  .get(UserController.refreshToken)
+ 
+ router.route('/update')
+ .put(AuthMiddleware.isAuthorized, UserValidation.update, UserController.update)
+
+
 
 export const userRoutes = router
