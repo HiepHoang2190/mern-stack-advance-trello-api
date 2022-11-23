@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { pick } from 'lodash'
 import { SendInBlueProvider } from '*/providers/SendInBlueProvider'
 import { JwtProvider } from '*/providers/JwtProvider'
+import { CloudinaryProvider } from '*/providers/CloudinaryProvider'
 import { WEBSITE_DOMAIN } from '*/utilities/constants'
 import { pickUser } from '*/utilities/transform'
 import { env } from '*/config/environtment'
@@ -149,11 +150,21 @@ const refreshToken = async (clientRefershToken) => {
     throw new Error(error)
   }
 }
-const update = async (userId, data) => {
+const update = async (userId, data, userAvatarFile) => {
   try {
     let updatedUser = {}
 
-    if(data.currentPassword && data.newPassword) {
+    if(userAvatarFile) {
+      console.log('agasds')
+      // Upload file len cloudinary
+      const uploadResult = await CloudinaryProvider.streamUpload(userAvatarFile.buffer, 'users')
+      console.log(uploadResult)
+
+      updatedUser = await UserModel.update(userId, {
+        avatar: uploadResult.secure_url
+      })
+
+    } else if(data.currentPassword && data.newPassword) {
       //  Change password
       const existUser = await UserModel.findOneById(userId)
       if (!existUser) {
