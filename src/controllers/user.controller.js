@@ -73,8 +73,10 @@ const verifyAccount = async (req, res) => {
  }
  const update = async (req, res) => {
   try {
+    console.log('controller',req.file)
     const userId = req.jwtDecoded._id
-    const result = await UserService.update(userId, req.body)
+    const userAvatarFile = req.file
+    const result = await UserService.update(userId, req.body, userAvatarFile)
   
     res.status(HttpStatusCode.OK).json(result)
   } catch (error) {

@@ -2,6 +2,8 @@ import express from 'express'
 import { UserController } from '*/controllers/user.controller'
 import { UserValidation } from '*/validations/user.validation'
 import {AuthMiddleware} from '*/middlewares/auth.middleware'
+import {UploadMiddleware} from '*/middlewares/upload.middleware'
+
 
 const router = express.Router()
 
@@ -22,7 +24,7 @@ router.route('/verify')
  .get(UserController.refreshToken)
  
  router.route('/update')
- .put(AuthMiddleware.isAuthorized, UserValidation.update, UserController.update)
+ .put(AuthMiddleware.isAuthorized, UploadMiddleware.upload.single('avatar'), UserValidation.update, UserController.update)
 
 
 
