@@ -8,11 +8,18 @@ import { CardModel } from './card.model'
 const boardCollectionName = 'boards'
 const boardCollectionSchema = Joi.object({
   title: Joi.string().required().min(1).max(50).trim(),
+
+  description: Joi.string().required().min(3).max(256).trim(),
+  ownerIds: Joi.array().items(Joi.string()).default([]),
+  memberIds: Joi.array().items(Joi.string()).default([]),
+
   columnOrder: Joi.array().items(Joi.string()).default([]),
   createdAt: Joi.date().timestamp().default(Date.now()),
   updatedAt: Joi.date().timestamp().default(null),
   _destroy: Joi.boolean().default(false)
 })
+
+const INVALID_UPDATE_FIELDS = ['_id','createdAt']
 
 const validateSchema = async (data) => {
   return await boardCollectionSchema.validateAsync(data, { abortEarly: false })
@@ -40,6 +47,13 @@ const createNew = async (data) => {
 const update = async (id, data) => {
   try {
     const updateData = { ...data }
+
+    Object.keys(updateData).forEach(fieldName => {
+      if(INVALID_UPDATE_FIELDS.includes(fieldName)) {
+          delete updateData[fieldName]
+      }
+    })
+
     const result = await getDB().collection(boardCollectionName).findOneAndUpdate(
       { _id: ObjectId(id) },
       { $set: updateData },
@@ -97,10 +111,36 @@ const getFullBoard = async (boardId) => {
   }
 }
 
+const getListBoards = async (userId) => {
+  try {
+    
+    const queryConditions = [
+      { _destroy: false },
+
+      { $or: [
+        { ownerIds: { $all: [ObjectId(userId)]} },
+        { memberIds: { $all: [ObjectId(userId)]} }
+      ]}
+    ]
+
+    const results = await getDB().collection(boardCollectionName).aggregate([
+      { $match: { $and: queryConditions}}
+    ]).toArray()
+
+    console.log(results)
+
+    return results
+
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const BoardModel = {
   createNew,
   update,
   pushColumnOrder,
   getFullBoard,
-  findOneById
+  findOneById,
+  getListBoards
 }
