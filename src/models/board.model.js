@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb'
 import { getDB } from '*/config/mongodb'
 import { ColumnModel } from './column.model'
 import { CardModel } from './card.model'
-
+import { pagingSkipValue} from '*/utilities/algorithms'
 // Define Board collection
 const boardCollectionName = 'boards'
 const boardCollectionSchema = Joi.object({
@@ -111,7 +111,7 @@ const getFullBoard = async (boardId) => {
   }
 }
 
-const getListBoards = async (userId) => {
+const getListBoards = async (userId, currentPage, itemsPerPage) => {
   try {
     
     const queryConditions = [
@@ -122,14 +122,33 @@ const getListBoards = async (userId) => {
         { memberIds: { $all: [ObjectId(userId)]} }
       ]}
     ]
+    
+    console.log('currentPage',currentPage)
+    console.log('itemsPerPage',itemsPerPage)
 
-    const results = await getDB().collection(boardCollectionName).aggregate([
-      { $match: { $and: queryConditions}}
+    const query = await getDB().collection(boardCollectionName).aggregate([
+      { $match: { $and: queryConditions}},
+      { $facet: {
+        'boards': [
+          { $skip: pagingSkipValue(currentPage, itemsPerPage)},
+          { $limit: itemsPerPage },
+          { $sort: { title: 1}} //title A-Z
+        ],
+        'totalBoards': [
+          { $count: 'countedBoards'}
+        ]
+      }}
     ]).toArray()
 
-    console.log(results)
 
-    return results
+    console.log(query)
+    const res = query[0]
+
+
+    return {
+      boards: res.boards || [],
+      totalBoards : res.totalBoards[0]?.countedBoards || 0
+    }
 
   } catch (error) {
     throw new Error(error)

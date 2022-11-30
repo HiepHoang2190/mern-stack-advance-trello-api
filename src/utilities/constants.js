@@ -20,3 +20,7 @@ if(env.BUIL_MODE === 'production') {
   websiteDomain = 'https://trungquandev.com'
 }
 export const WEBSITE_DOMAIN = websiteDomain
+
+export const DEFAULT_ITEMS_PER_PAGE = 12
+export const DEFAULT_CURRENT_PAGE = 1
+
