@@ -39,11 +39,13 @@ const update = async (req, res) => {
 
 const getListBoards = async (req, res) => {
   try {
+
+    const {currentPage, itemsPerPage} = req.query
     const userId = req.jwtDecoded._id
 
-    const result = await BoardService.getListBoards(userId)
+    const results = await BoardService.getListBoards(userId, currentPage, itemsPerPage)
 
-    res.status(HttpStatusCode.OK).json(result)
+    res.status(HttpStatusCode.OK).json(results)
   } catch (error) {
     res.status(HttpStatusCode.INTERNAL_SERVER).json({
       errors: error.message
