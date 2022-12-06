@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb'
 import { getDB } from '*/config/mongodb'
 import { ColumnModel } from './column.model'
 import { CardModel } from './card.model'
+import { UserModel } from './user.model'
 import { pagingSkipValue} from '*/utilities/algorithms'
 // Define Board collection
 const boardCollectionName = 'boards'
@@ -34,10 +35,16 @@ const findOneById = async (id) => {
   }
 }
 
-const createNew = async (data) => {
+const createNew = async (data, userId) => {
   try {
     const value = await validateSchema(data)
-    const result = await getDB().collection(boardCollectionName).insertOne(value)
+    const createData = {
+      ...value,
+      ownerIds: [ObjectId(userId)]
+    }
+
+
+    const result = await getDB().collection(boardCollectionName).insertOne(createData)
     return result
   } catch (error) {
     throw new Error(error)
@@ -102,6 +109,24 @@ const getFullBoard = async (boardId) => {
         localField: '_id',
         foreignField: 'boardId',
         as: 'cards'
+      } },
+      { $lookup: {
+        from: UserModel.userCollectionName,
+        localField: 'ownerIds', // array of ObjectIds
+        foreignField: '_id',
+        as: 'owners',
+        pipeline: [
+          { $project: { 'password':0, 'verifyToken': 0}}
+        ]
+      } },
+      { $lookup: {
+        from: UserModel.userCollectionName,
+        localField: 'memberIds', // array of ObjectIds
+        foreignField: '_id',
+        as: 'members',
+        pipeline: [
+          { $project: { 'password':0, 'verifyToken': 0}}
+        ]
       } }
     ]).toArray()
 
@@ -111,7 +136,7 @@ const getFullBoard = async (boardId) => {
   }
 }
 
-const getListBoards = async (userId, currentPage, itemsPerPage) => {
+const getListBoards = async (userId, currentPage, itemsPerPage,queryFilters) => {
   try {
     
     const queryConditions = [
@@ -123,25 +148,44 @@ const getListBoards = async (userId, currentPage, itemsPerPage) => {
       ]}
     ]
     
-    console.log('currentPage',currentPage)
-    console.log('itemsPerPage',itemsPerPage)
+    console.log('queryFilters',queryFilters)
+    if(queryFilters) {
+      Object.keys(queryFilters).forEach(key => {
+        // console.log('key',key)
+        // console.log('value',queryFilters[key])
 
-    const query = await getDB().collection(boardCollectionName).aggregate([
-      { $match: { $and: queryConditions}},
-      { $facet: {
-        'boards': [
-          { $skip: pagingSkipValue(currentPage, itemsPerPage)},
-          { $limit: itemsPerPage },
-          { $sort: { title: 1}} //title A-Z
-        ],
-        'totalBoards': [
-          { $count: 'countedBoards'}
-        ]
-      }}
-    ]).toArray()
+        // Có phân biệt chữ hoa và chữ thường
+        // queryConditions.push({ [key]: { $regex: queryFilters[key] } }) 
 
 
-    console.log(query)
+        // Không phân biệt chữ hoa và chữ thường
+        queryConditions.push({ [key]: { $regex: new RegExp(queryFilters[key], 'i') } }) 
+      })
+    }
+
+    // console.log('currentPage',currentPage)
+    // console.log('itemsPerPage',itemsPerPage)
+
+    console.log('queryConditions',queryConditions)
+    const query = await getDB().collection(boardCollectionName).aggregate(
+      [
+        { $match: { $and: queryConditions}},
+        { $sort: { title: 1}}, //title A-Z
+        { $facet: {
+          'boards': [
+            { $skip: pagingSkipValue(currentPage, itemsPerPage)},
+            { $limit: itemsPerPage }
+          ],
+          'totalBoards': [
+            { $count: 'countedBoards'}
+          ]
+        }}
+      ],
+        {collation: { locale: 'en'} }
+    ).toArray()
+
+
+    // console.log(query)
     const res = query[0]
 
 
