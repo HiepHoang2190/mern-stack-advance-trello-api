@@ -14,14 +14,16 @@ const createNew = async (data) => {
   }
 }
 
-const update = async (id, data) => {
+// user info lấy từ token, mà token mình đang lưu mỗi email với _id vào
+const update = async (cardId, data, userInfo) => {
   try {
     const updateData = {
       ...data,
       updatedAt: Date.now()
     }
-    if (updateData._id) delete updateData._id
-    const updatedCard = await CardModel.update(id, updateData)
+    console.log("User: ", userInfo)
+
+    const updatedCard = await CardModel.update(cardId, updateData)
 
     return updatedCard
   } catch (error) {
