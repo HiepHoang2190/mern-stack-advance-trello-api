@@ -1,5 +1,6 @@
 import { CardModel } from '*/models/card.model'
 import { ColumnModel } from '*/models/column.model'
+import { CloudinaryProvider } from '*/providers/CloudinaryProvider'
 
 const createNew = async (data) => {
   try {
@@ -15,15 +16,30 @@ const createNew = async (data) => {
 }
 
 // user info lấy từ token, mà token mình đang lưu mỗi email với _id vào
-const update = async (cardId, data, userInfo) => {
+const update = async (cardId, data, userInfo, cardCoverFile) => {
   try {
     const updateData = {
       ...data,
       updatedAt: Date.now()
     }
-    console.log("User: ", userInfo)
+    // console.log("User: ", userInfo)
+    let updatedCard = {}
+    
+    if (cardCoverFile) {
+      // update card cover
+      const uploadResult = await CloudinaryProvider.streamUpload(cardCoverFile.buffer, 'card-covers')
+   
 
-    const updatedCard = await CardModel.update(cardId, updateData)
+      updatedCard = await CardModel.update(cardId, {
+        cover: uploadResult.secure_url
+      })
+
+    } else {
+      // update title, description, ...
+      updatedCard = await CardModel.update(cardId, updateData)
+    }
+
+    
 
     return updatedCard
   } catch (error) {
