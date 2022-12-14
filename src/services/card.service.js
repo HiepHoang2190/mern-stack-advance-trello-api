@@ -1,6 +1,7 @@
 import { CardModel } from '*/models/card.model'
 import { ColumnModel } from '*/models/column.model'
 import { CloudinaryProvider } from '*/providers/CloudinaryProvider'
+import { ObjectId } from 'mongodb'
 
 const createNew = async (data) => {
   try {
@@ -33,6 +34,17 @@ const update = async (cardId, data, userInfo, cardCoverFile) => {
       updatedCard = await CardModel.update(cardId, {
         cover: uploadResult.secure_url
       })
+
+    } else if (updateData.newComment) {
+       const comment = {
+        ...updateData.newComment,
+        userId: ObjectId(userInfo._id),
+        userEmail: userInfo.email,
+        createdAt: Date.now()
+       }
+       console.log('comment',comment)
+
+       updatedCard = await CardModel.pushNewComment(cardId, comment)
 
     } else {
       // update title, description, ...
