@@ -205,5 +205,6 @@ export const BoardModel = {
   pushColumnOrder,
   getFullBoard,
   findOneById,
-  getListBoards
+  getListBoards,
+  boardCollectionName
 }

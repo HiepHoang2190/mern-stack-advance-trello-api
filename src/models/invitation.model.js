@@ -1,6 +1,8 @@
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { getDB } from '*/config/mongodb'
+import { UserModel } from './user.model'
+import { BoardModel } from './board.model'
  
 const INVITATION_TYPES = {
  BOARD_INVITATION: 'BOARD_INVITATION'
@@ -81,6 +83,48 @@ const update = async (id, data) => {
    throw new Error(error)
  }
 }
+
+const findByUser = async (userId) => {
+    try {
+
+        const results = await getDB().collection(invitationCollectionName).aggregate([
+            {  $match:{
+                inviteeId: ObjectId(userId),
+                _destroy: false
+            } },
+            { $lookup: {
+                from: UserModel.userCollectionName,
+                localField: 'inviterId',
+                foreignField: '_id',
+                as: 'inviter',
+                pipeline: [
+                    { $project: { 'password':0, 'verifyToken': 0}}
+                ]
+            } },
+            { $lookup: {
+                from: UserModel.userCollectionName,
+                localField: 'inviteeId',
+                foreignField: '_id',
+                as: 'invitee',
+                pipeline: [
+                    { $project: { 'password':0, 'verifyToken': 0}}
+                ]
+            } },
+            { $lookup: {
+                from: BoardModel.boardCollectionName,
+                localField: 'boardInvitation.boardId',
+                foreignField: '_id',
+                as: 'board'
+            } }
+
+        ]).toArray()
+
+        return results
+        
+    } catch (error) {
+        throw new Error(error)
+    }
+}
  
 export const InvitationModel = {
  invitationCollectionName,
@@ -88,7 +132,8 @@ export const InvitationModel = {
  update,
  findOneById,
  INVITATION_TYPES,
- BOARD_INVITATION_STATUS
+ BOARD_INVITATION_STATUS,
+ findByUser
 }
  
 
