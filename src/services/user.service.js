@@ -71,7 +71,7 @@ const verifyAccount = async (data) => {
     }
 
     const updateUser = await UserModel.update(existUser._id.toString(), updateData)
-    console.log(updateUser)
+    // console.log(updateUser)
 
     // return pick(updateUser,['email','username','displayName','avatar','role','isActive','createdAt','updatedAt'])
     return pickUser(updateUser)
@@ -155,10 +155,10 @@ const update = async (userId, data, userAvatarFile) => {
     let updatedUser = {}
 
     if(userAvatarFile) {
-      console.log('agasds')
+      // console.log('agasds')
       // Upload file len cloudinary
       const uploadResult = await CloudinaryProvider.streamUpload(userAvatarFile.buffer, 'users')
-      console.log(uploadResult)
+      // console.log(uploadResult)
 
       updatedUser = await UserModel.update(userId, {
         avatar: uploadResult.secure_url
