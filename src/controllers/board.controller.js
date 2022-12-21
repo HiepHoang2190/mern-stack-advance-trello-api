@@ -46,7 +46,7 @@ const getListBoards = async (req, res) => {
 
     const {currentPage, itemsPerPage, q} = req.query
     const queryFilters = q
-    console.log('queryFilters',queryFilters)
+    // console.log('queryFilters',queryFilters)
 
     const userId = req.jwtDecoded._id
 

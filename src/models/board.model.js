@@ -91,6 +91,20 @@ const pushColumnOrder = async (boardId, columnId) => {
   }
 }
 
+const pushMembers = async (boardId, userId) => {
+  try {
+    const result = await getDB().collection(boardCollectionName).findOneAndUpdate(
+      { _id: ObjectId(boardId) },
+      { $push: { memberIds: ObjectId(userId) } },
+      { returnDocument: 'after' }
+    )
+
+    return result.value
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const getFullBoard = async (boardId) => {
   try {
     const result = await getDB().collection(boardCollectionName).aggregate([
@@ -148,7 +162,7 @@ const getListBoards = async (userId, currentPage, itemsPerPage,queryFilters) => 
       ]}
     ]
     
-    console.log('queryFilters',queryFilters)
+    // console.log('queryFilters',queryFilters)
     if(queryFilters) {
       Object.keys(queryFilters).forEach(key => {
         // console.log('key',key)
@@ -166,7 +180,7 @@ const getListBoards = async (userId, currentPage, itemsPerPage,queryFilters) => 
     // console.log('currentPage',currentPage)
     // console.log('itemsPerPage',itemsPerPage)
 
-    console.log('queryConditions',queryConditions)
+    // console.log('queryConditions',queryConditions)
     const query = await getDB().collection(boardCollectionName).aggregate(
       [
         { $match: { $and: queryConditions}},
@@ -206,5 +220,6 @@ export const BoardModel = {
   getFullBoard,
   findOneById,
   getListBoards,
-  boardCollectionName
+  boardCollectionName,
+  pushMembers
 }
