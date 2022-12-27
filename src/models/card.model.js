@@ -116,11 +116,40 @@ const pushNewComment = async (cardId, comment) => {
   }
 }
 
+
+const updateMembers = async (cardId, incomingMember) => {
+  try {
+    console.log('incomingMember_action',incomingMember.action) // CARD_MEMBERS_ACTION_PUSH
+    console.log('incomingMember_userId',incomingMember.userId)
+    console.log('=======================')
+
+    let updateCondition = {}
+    if (incomingMember.action === 'CARD_MEMBERS_ACTION_PUSH') {
+      updateCondition = { $push: { memberIds: ObjectId(incomingMember.userId) } }
+    }
+
+    if (incomingMember.action === 'CARD_MEMBERS_ACTION_REMOVE') {
+      updateCondition = { $pull: { memberIds: ObjectId(incomingMember.userId) } }
+    }
+
+    const result = await getDB().collection(cardCollectionName).findOneAndUpdate(
+      { _id: ObjectId(cardId) },
+      updateCondition,
+      { returnDocument: 'after' }
+    )
+
+    return result.value
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const CardModel = {
   cardCollectionName,
   createNew,
   deleteMany,
   update,
   findOneById,
-  pushNewComment
+  pushNewComment,
+  updateMembers
 }

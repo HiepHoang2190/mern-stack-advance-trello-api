@@ -45,7 +45,10 @@ const update = async (cardId, data, userInfo, cardCoverFile) => {
        console.log('comment',comment)
 
        updatedCard = await CardModel.pushNewComment(cardId, comment)
+    }else if (updateData.incomingMember) {
 
+      updatedCard = await CardModel.updateMembers(cardId, updateData.incomingMember)
+      
     } else {
       // update title, description, ...
       updatedCard = await CardModel.update(cardId, updateData)
