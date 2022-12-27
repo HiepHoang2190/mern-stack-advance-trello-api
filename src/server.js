@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser'
 
 import socketIo from 'socket.io'
 import http from 'http'
-
+import { inviteUserToBoardSocket } from '*/sockets/inviteUserToBoardSocket'
 connectDB()
   .then(() => console.log('Connected successfully to database server!'))
   .then(() => bootServer())
@@ -47,14 +47,8 @@ const bootServer = () => {
     // socket.on('disconnect', () => {
     //   console.log('Client disconnected')
     // })
-
-    socket.on('c_user_invited_to_board', (invitation) => {
-      // console.log('invitation',invitation)
-      
-      // Emit  ngược lại một sự kiện có tên là "s_user_invited_to_board" về cho client khác (ngoại trừ chính thằng user gửi lên)
-
-      socket.broadcast.emit('s_user_invited_to_board',invitation)
-    })
+    inviteUserToBoardSocket(socket)
+    
   })
 
   // app.listen(env.APP_PORT, env.APP_HOST, () => {
